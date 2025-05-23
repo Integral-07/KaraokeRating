@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/util/supabase/client";
 
 interface FormData {
   email: string;
@@ -11,26 +12,27 @@ interface FormData {
 }
 
 const LoginForm = () => {
+  const supabase = createClient();
   const router = useRouter();
-  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormData>();
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting } } = useForm<FormData>();
   const [message, setMessage] = useState<string | null>(null);
 
+  const email = watch("email");
+  const password = watch("password");
+
   const onSubmit = async (data: FormData) => {
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setMessage('ログインに成功しました！');
-        router.push('/dashboard');
-      } else {
-        setMessage(result.error || 'ログインに失敗しました。');
+    try{
+      const { error:signInError } = await supabase.auth.signInWithPassword({
+        email: email,
+        password: password,
+      })
+      if (signInError) {
+        throw signInError;
       }
-    } catch {
-      setMessage('サーバーエラーが発生しました。');
+      setMessage("Login Success!");
+      await router.push("/dashboard");
+    }catch{
+      setMessage("メールアドレスまたはパスワードが間違っているか\nメールアドレスが認証されていません");
     }
   };
 

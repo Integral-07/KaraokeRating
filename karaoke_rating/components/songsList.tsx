@@ -2,6 +2,7 @@
 import axios from "axios";
 import { parseStringPromise } from 'xml2js';
 import ScoreCard from "@/components/scoreCard";
+import calcRank from "./calcRank";
 
 type ScoringData = {
 
@@ -12,57 +13,14 @@ type ScoringData = {
   artistName: string;
   scoringDateTime: string;
   rank: string;
+  albamArt: string;
 };
 
-const calcRank = (score: number) => {
 
-    let rank = "N";
-    if (score >= 97.5){
-
-        rank = "SSS+";
-    }
-    else if(score >= 96.0){
-
-        rank = "SSS";
-    }
-    else if(score >= 95.0){
-
-        rank = "SS+";
-    }
-    else if(score >= 93.0){
-
-        rank = "SS";
-    }
-    else if(score >= 92.0){
-
-        rank = "S+";
-    }
-    else if(score >= 90.0){
-
-        rank = "S";
-    }
-    else if(score >= 85.0){
-
-        rank = "AAA";
-    }
-    else if(score >= 80.0){
-
-        rank = "AA";
-    }
-    else{
-        rank = "A";
-    }
-
-    return rank;
-}
 
 export const fetchReviewedSongData = async( cdmCardNo :string) => {
 
-    const endPoint = "https://www.clubdam.com/app/damtomo/scoring/GetScoringAiListXML.do";
 
-    const pageNo = 1;//searchParams.get("pageNo");
-    const scoringAiId = undefined;//searchParams.get("scoringAiId");
-    const detailFlg = 0;//searchParams.get("detailFlg");
 /*
     const response = await axios.get(endPoint, {
         params:{
@@ -189,30 +147,16 @@ export const fetchReviewedSongData = async( cdmCardNo :string) => {
       };
     const resultJson = data;//await parseStringPromise(data, { explicitArray: false });
     const listData = resultJson.document.list.data;
-
+    
     const scoringArray: ScoringData[] = await Promise.all(
         listData.map(async (item: any) => {
         const rawScore = item.scoring._;
         const formattedScore = (Number(rawScore) / 1000).toFixed(3);
         const scoring = item.scoring.$;
 
-        const term = encodeURIComponent(`${scoring.contentsName} ${scoring.artistName}`);
-        const url = `https://itunes.apple.com/search?term=${term}&media=music&entity=musicTrack&limit=1`;
+        const albumArt = require('album-art');
+        const albamArtUrl = await albumArt(scoring.artistName, scoring.contentsName);
 
-        let coverUrl = undefined;
-        /*
-        try {
-            const res = await fetch(url);
-            const json = await res.json();
-            if (json.results.length > 0) {
-            // artworkUrl100 → 高解像度版が欲しければ文字列操作
-            const rawUrl: string = json.results[0].artworkUrl100; 
-            coverUrl = rawUrl.replace(/100x100bb/, '600x600bb');
-            }
-        } catch (e) {
-            console.error('iTunes API fetch error:', e);
-        }
-        */
         return {
           scoringAiId: scoring.scoringAiId,
           requestNo: scoring.requestNo,
@@ -220,7 +164,8 @@ export const fetchReviewedSongData = async( cdmCardNo :string) => {
           artistName: scoring.artistName,
           scoringDateTime: scoring.scoringDateTime,
           score: formattedScore,
-          rank: calcRank(Number(formattedScore))
+          rank: calcRank(Number(formattedScore)),
+          albamArt: albamArtUrl,
         };
       }));
 
@@ -234,15 +179,20 @@ type ScoreCardProps = {
     scoringDateTime: string;
     score: string;
     rank:string;
+    albamArt: string;
   };
 const SongList = async() => {
 
     const cdmCardNo = "ODAwMDEyMDEyMDgxMzUx";
     const data = await fetchReviewedSongData(cdmCardNo);
+
     return(
         <>
-        <h1>楽曲一覧</h1>
-        <div className="flex overflow-x-auto no-scrollbar space-x-4 p-10">
+
+        <div className="mt-10">
+          <h1 className="bg-red-300 text-gray-100 text-3xl font-sans px-10 py-2">楽曲一覧</h1>
+        </div>
+        <div className="flex overflow-x-auto no-scrollbar space-x-4 px-10">
             {data.map((item, index) => {
                 const props: ScoreCardProps = {
                     
@@ -251,6 +201,7 @@ const SongList = async() => {
                     scoringDateTime: item.scoringDateTime,
                     score: item.score,
                     rank: item.rank,
+                    albamArt: item.albamArt,
                 }
                 return <ScoreCard key={index} {...props}/>;
             })}

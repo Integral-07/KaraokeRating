@@ -4,14 +4,17 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { motion } from "framer-motion";
 import { useRouter } from "next/navigation";
+import { createClient } from "@/util/supabase/client";
 
 interface FormData {
   email: string;
   password: string;
   confirmPassword: string;
+  user_name: string;
 }
 
 const SignupForm = () => {
+  const supabase = createClient();
   const router = useRouter();
   const {
     register,
@@ -21,30 +24,33 @@ const SignupForm = () => {
   } = useForm<FormData>();
   
   const [message, setMessage] = useState<string | null>(null);
+  const email = watch("email");
+  const password = watch("password");
+  const userName = watch("user_name");
 
   const onSubmit = async (data: FormData) => {
     try {
-      const res = await fetch('/api/auth/signup', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: data.email,
-          password: data.password,
-        }),
-      });
-      const result = await res.json();
-      if (result.success) {
-        setMessage('登録に成功しました！');
-        router.push('/login');
-      } else {
-        setMessage(result.error || '登録に失敗しました。');
+      const { error:signUpError } = await supabase.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+        data: {
+          display_name: userName,
+          rating: 0,
+          icon_id: 0
+        }
+  }
+      })
+      if (signUpError) {
+        throw signUpError;
       }
-    } catch {
-      setMessage('サーバーエラーが発生しました。');
+      
+      alert('登録完了メールを確認してください');
+      router.push("/login");
+    }catch(error){
+      alert(error);
     }
   };
-
-  const password = watch("password");
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-br from-green-50 to-blue-100 p-4">
@@ -56,6 +62,18 @@ const SignupForm = () => {
         className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8 space-y-6"
       >
         <h1 className="text-3xl font-extrabold text-center text-gray-800">新規登録</h1>
+
+        {/* User Name Field */}
+        <div className="space-y-1">
+          <label htmlFor="user_name" className="block text-sm font-medium text-gray-700">ユーザーネーム</label>
+          <input
+            id="user_name"
+            type="user_name"
+            {...register('user_name', { required: 'ユーザーネームは必須です' })}
+            className="w-full px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+          {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email.message}</p>}
+        </div>
 
         {/* Email Field */}
         <div className="space-y-1">

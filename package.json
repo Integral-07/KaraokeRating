@@ -2,6 +2,7 @@
   "dependencies": {
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.4",
+    "album-art": "^4.0.0",
     "axios": "^1.9.0",
     "framer-motion": "^12.12.1",
     "react-hook-form": "^7.56.4"

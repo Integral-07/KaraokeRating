@@ -11,37 +11,71 @@ export type Database = {
     Tables: {
       songs: {
         Row: {
+          albamArtUrl: string | null
           artist: string | null
           corrected_score: number | null
           created_at: string
           id: number
           isDAM: boolean | null
+          level: number | null
           rank: string | null
-          row_score: number | null
+          raw_score: number | null
+          requestNo: string | null
           scored_at: string | null
           title: string | null
+          user_id: string | null
         }
         Insert: {
+          albamArtUrl?: string | null
           artist?: string | null
           corrected_score?: number | null
           created_at?: string
           id?: number
           isDAM?: boolean | null
+          level?: number | null
           rank?: string | null
-          row_score?: number | null
+          raw_score?: number | null
+          requestNo?: string | null
           scored_at?: string | null
           title?: string | null
+          user_id?: string | null
         }
         Update: {
+          albamArtUrl?: string | null
           artist?: string | null
           corrected_score?: number | null
           created_at?: string
           id?: number
           isDAM?: boolean | null
+          level?: number | null
           rank?: string | null
-          row_score?: number | null
+          raw_score?: number | null
+          requestNo?: string | null
           scored_at?: string | null
           title?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      user_data: {
+        Row: {
+          icon_id: number | null
+          id: number
+          name: string | null
+          rating: number | 0
+          user_id: string | null
+        }
+        Insert: {
+          icon_id?: number | null
+          id?: number
+          name?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          icon_id?: number | null
+          id?: number
+          name?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
